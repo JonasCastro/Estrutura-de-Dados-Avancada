@@ -97,28 +97,11 @@ public class HuffmanTree {
 				System.out.print("(" + pq.getHeap().get(i).freq + "," + pq.getHeap().get(i).ch + ")");
 				//
 			}
-			// for (Node x : pq) {
-			// System.out.print("(" + x.freq + "," + x.ch + ")");
-			//
-			// }
-			if (pq.getHeap().size() == 2) {
-				int i = 0;
-				Node min1 = pq.getHeap().get(0);
-				Node min2 = pq.getHeap().get(1);
-				System.out.println("\nmin1  " + min1.ch);
-				System.out.println("min2  " + min2.ch);
-				if (min1.compareTo(min2) > 0) {
-					Node aux = min1;
-					pq.getHeap().set(0, pq.getHeap().get(1));
-					pq.getHeap().set(1, aux);
-
-				}
-				min1 = pq.getHeap().get(0);
-				min2 = pq.getHeap().get(1);
-				System.out.println("\nmin1  " + min1.ch);
-				System.out.println("min2  " + min2.ch);
-
-			}
+//			 for (Node x : pq) {
+//			 System.out.print("(" + x.freq + "," + x.ch + ")");
+//			
+//			 }
+			
 			System.out.println();
 			Node right = pq.extractMin();
 			right = precedencia(right, pq);
