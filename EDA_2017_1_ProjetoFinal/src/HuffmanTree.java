@@ -1,8 +1,5 @@
 import java.io.IOException;
 
-import javax.security.auth.PrivateCredentialPermission;
-
-
 public class HuffmanTree {
 	// alphabet size of extended ASCII
 	private static final int R = 256;
@@ -97,11 +94,11 @@ public class HuffmanTree {
 				System.out.print("(" + pq.getHeap().get(i).freq + "," + pq.getHeap().get(i).ch + ")");
 				//
 			}
-//			 for (Node x : pq) {
-//			 System.out.print("(" + x.freq + "," + x.ch + ")");
-//			
-//			 }
-			
+			// for (Node x : pq) {
+			// System.out.print("(" + x.freq + "," + x.ch + ")");
+			//
+			// }
+
 			System.out.println();
 			Node right = pq.extractMin();
 			right = precedencia(right, pq);
@@ -138,8 +135,8 @@ public class HuffmanTree {
 		// if(pq.Min().ch == '-')
 		if (pq.size() == 0)
 			return left;
-		System.out.print("(" + pq.min().freq + "," + pq.min().ch + "),");
-		System.out.print("(" + left.freq + "," + left.ch + ")");
+		// System.out.print("(" + pq.min().freq + "," + pq.min().ch + "),");
+		// System.out.print("(" + left.freq + "," + left.ch + ")");
 		System.out.println();
 		if (!(pq.min().freq == left.freq)) {
 			return left;
@@ -178,6 +175,8 @@ public class HuffmanTree {
 		TextFile textFileRead = new TextFile("infile", 'r');
 
 		String s = textFileRead.readString();
+		textFileRead.close();
+		
 		System.out.println("->" + s.substring(0, s.length() - 1));
 		char[] input = s.substring(0, s.length() - 1).toCharArray();
 
@@ -190,7 +189,7 @@ public class HuffmanTree {
 		}
 		// build Huffman trie
 		Node root = buildTrie(freq);
-		rooot =root;
+		rooot = root;
 		// build code table
 		String[] st = new String[R];
 		buildCode(st, root, "");
@@ -199,31 +198,36 @@ public class HuffmanTree {
 			System.out.println(input[i] + "  " + st[input[i]]);
 
 		}
-
+		BinaryFile bf = new BinaryFile("saida", 'w');
 		//
-		// // print trie for decoder
-		// writeTrie(root);
+		// print trie for decoder
+		writeTrie(root,bf);
+		bf.flush();
 		//
-		// // print number of bytes in original uncompressed message
-		// BinaryStdOut.write(input.length);
-		//
-		// // use Huffman code to encode input
-		 for (int i = 0; i < input.length; i++) {
-		 String code = st[input[i]];
-		 System.out.println(input[i] + " :" + code);
-		for (int j = 0; j < code.length(); j++) {
-			if (code.charAt(j) == '0') {
-				BinaryStdOut.write(false);
-			} else if (code.charAt(j) == '1') {
-				BinaryStdOut.write(true);
-			} else
-				throw new IllegalStateException("Illegal state");
+//		// print number of bytes in original uncompressed message
+//		BinaryStdOut.write(input.length);
+		System.out.println("pegamah");
+//		BinaryFile bf2 = new BinaryFile("saida", 'w');
+//		
+//		// use Huffman code to encode input
+		for (int i = 0; i < input.length; i++) {
+			String code = st[input[i]];
+			System.out.println(input[i] + " :" + code);
+			for (int j = 0; j < code.length(); j++) {
+				if (code.charAt(j) == '0') {
+					bf.writeBit(false);
+				} else if (code.charAt(j) == '1') {
+					bf.writeBit(true);
+				} else
+					throw new IllegalStateException("Illegal state");
+			}
 		}
-	}BTreePrinter.printNode(root);
+		bf.close();
+		BTreePrinter.printNode(root);
 
-	// printString(root,"");
-	// // close output stream
-	// BinaryStdOut.close();
+		// printString(root,"");
+		// // close output stream
+		// BinaryStdOut.close();
 	}
 
 	// make a lookup table from symbols and their encodings
@@ -234,6 +238,18 @@ public class HuffmanTree {
 		} else {
 			st[x.ch] = s;
 		}
+	}
+
+	// write bitstring-encoded trie to standard output
+	private static void writeTrie(Node x , BinaryFile bf) {
+		if (x.isLeaf()) {
+			bf.writeBit(true);
+			bf.writeChar(x.getCh());
+			return;
+		}
+		bf.writeBit(false);
+		writeTrie(x.getLeft(),bf);
+		writeTrie(x.getRight(),bf);
 	}
 
 	public static int[] calculateFrequency(char[] input) {
@@ -253,32 +269,51 @@ public class HuffmanTree {
 		} else
 			System.out.println(recoil + "-");
 	}
-	public static void expand() {
+
+	private static Node readTrie(BinaryFile tx) throws IOException {
+			
+			boolean isLeaf = tx.readBit();
+			System.out.println(isLeaf);
+			if (isLeaf) {
+				char c = tx.readChar();
+				 System.out.println(c);
+				return new Node(c, -1, null, null);
+			} else {
+				return new Node('-', -1, readTrie(tx), readTrie(tx));
+			}
+		
+	}
+
+	public static void expand() throws IOException {
 
 		// read in Huffman trie from input stream
-		Node root = rooot;
-
+		BinaryFile tx = new BinaryFile("saida", 'r');
+		tx.fillBuffer();
+		Node root = readTrie(tx);
+		
+		System.out.println("expand-----------------------------------");
+		BTreePrinter.printNode(root);
 		// number of bytes to write
-		int length = BinaryStdIn3.readInt();
-		System.out.println(length);
+		// int length = BinaryStdIn3.readInt();
+		// System.out.println(length);
 		// decode using the Huffman trie
-		for (int i = 0; i < length; i++) {
-			
-			Node x = root;
-			while (!BinaryStdIn2.isEmpty() && !x.isLeaf()) {
-//				System.out.println("ff");
-				
-				boolean bit = BinaryStdIn2.readBoolean();
-				System.out.println("->"+bit);
-				if (bit)
-					x = x.getRight();
-				else
-					x = x.getLeft();
-			}
-//			System.out.println("->"+x.getCh());
-			BinaryStdOut2.write(x.getCh(), 8);
-		}
-		BinaryStdOut2.close();
+		// for (int i = 0; i < length; i++) {
+		//
+		// Node x = root;
+		// while (!BinaryStdIn2.isEmpty() && !x.isLeaf()) {
+		// // System.out.println("ff");
+		//
+		// boolean bit = BinaryStdIn2.readBoolean();
+		// System.out.println("->" + bit);
+		// if (bit)
+		// x = x.getRight();
+		// else
+		// x = x.getLeft();
+		// }
+		// // System.out.println("->"+x.getCh());
+		// BinaryStdOut2.write(x.getCh(), 8);
+		// }
+		// BinaryStdOut2.close();
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -294,7 +329,7 @@ public class HuffmanTree {
 		} else if (args[0].equals("-d")) {
 
 		}
-		// 
+		//
 		else
 			throw new IllegalArgumentException("Illegal command line argument");
 

@@ -59,7 +59,7 @@ public final class BinaryStdIn2 {
     // don't instantiate
     private BinaryStdIn2() { }
 
-    private static void fillBuffer() {
+    static void fillBuffer() {
         try {
             buffer = in.inr.read();
             System.out.println(buffer);

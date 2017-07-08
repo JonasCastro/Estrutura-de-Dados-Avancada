@@ -46,7 +46,7 @@ public class TextFile {
 		return buffer == EOF;
 	}
 
-	private void fillBuffer() {
+	public void fillBuffer() {
 		try {
 			buffer = inr.read();
 			n = 8;
@@ -62,27 +62,10 @@ public class TextFile {
 			throw new NoSuchElementException("Reading from empty input stream");
 
 		// special case when aligned byte
-		// if (n == 8) {
 		fillBuffer();
 		int x = buffer;
 
 		return (char)  (x & 0xff);
-		// }
-
-		// // combine last n bits of current buffer with first 8-n bits of new
-		// // buffer
-		// int x = buffer;
-		// x <<= (8 - n);
-		// int oldN = n;
-		// fillBuffer();
-		// if (endOfFile())
-		// throw new NoSuchElementException("Reading from empty input stream");
-		// n = oldN;
-		// x |= (buffer >>> n);
-		// return (char) (x & 0xff);
-		// // the above code doesn't quite work for the last character if n = 8
-		// // because buffer will be -1, so there is a special case for aligned
-		// // byte
 	}
 
 	public void writeChar(char c) {
@@ -129,6 +112,21 @@ public class TextFile {
 		}
 		
 	}
+
+		 /**
+	     * Reads the next bit of data from standard input and return as a boolean.
+	     *
+	     * @return the next bit of data from standard input as a {@code boolean}
+	     * @throws NoSuchElementException if standard input is empty
+	     */
+	    public  boolean readBoolean() {
+	    	fillBuffer();
+	        if (endOfFile()) throw new NoSuchElementException("Reading from empty input stream");
+	        n--;
+	        boolean bit = ((buffer >> n) & 1) == 1;
+	        if (n == 0) fillBuffer();
+	        return bit;
+	    }
 	
 	
 	
