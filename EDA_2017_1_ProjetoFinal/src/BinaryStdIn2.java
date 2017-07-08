@@ -205,10 +205,14 @@ public final class BinaryStdIn2 {
      */
     public static int readInt() {
         int x = 0;
-        for (int i = 0; !isEmpty() && i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             char c = readChar();
+            System.out.println("c="+c);
             x <<= 8;
+            System.out.println(" x <<= 8; ="+x);
             x |= c;
+            System.out.println(" x |= c;="+x);
+            
         }
         return x;
     }

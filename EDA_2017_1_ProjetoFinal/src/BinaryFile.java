@@ -44,7 +44,7 @@ public class BinaryFile {
 	}
 
 	public boolean readBit() {
-
+		System.out.println(buffer + "   " + EOF);
 		if (endOfFile())
 			throw new NoSuchElementException("Reading from empty input stream");
 		n--;
@@ -58,7 +58,7 @@ public class BinaryFile {
 	public void fillBuffer() {
 		try {
 			buffer = inr.read();
-
+			System.out.println((char) buffer);
 			n = 8;
 		} catch (IOException e) {
 			System.out.println("EOF");
@@ -68,18 +68,18 @@ public class BinaryFile {
 	}
 
 	public void writeBit(boolean bit) {
-		System.out.println("writeBit : bit chegou  " + bit);
+//		System.out.println("writeBit : bit chegou  " + bit);
 		// add bit to buffer
-		System.out.println("writeBit como ta buffer: " + buffer);
+//		System.out.println("writeBit como ta buffer: " + buffer);
 		buffer <<= 1;
-		System.out.println("writeBit como ta buffer agora: " + buffer);
+//		System.out.println("writeBit como ta buffer agora: " + buffer);
 		if (bit) {
-			System.out.println(buffer | 1);
+//			System.out.println(buffer | 1);
 			buffer = buffer | 1;
 		}
-		System.out.println("writeBit como ta buffer APOS ADD: " + buffer);
+//		System.out.println("writeBit como ta buffer APOS ADD: " + buffer);
 		// if buffer is full (8 bits), write out as a single byte
-		System.out.println("writeBit como ta : " + buffer);
+//		System.out.println("writeBit como ta : " + buffer);
 		n++;
 		System.out.println("n=" + n);
 		if (n == 8)
@@ -93,8 +93,11 @@ public class BinaryFile {
 	private void clearBuffer() {
 		if (n == 0)
 			return;
-		if (n > 0)
+		if (n > 0) {
+			System.out.println("clearBuffer : " + buffer);
 			buffer <<= (8 - n);
+
+		}
 		try {
 			System.out.println("clearBuffer : " + buffer);
 			inw.write(buffer);
@@ -111,8 +114,10 @@ public class BinaryFile {
 			throw new NoSuchElementException("Reading from empty input stream");
 
 		// special case when aligned byte
+		System.out.println(n == 8);
 		if (n == 8) {
 			int x = buffer;
+			System.out.println(x);
 			fillBuffer();
 			return (char) (x & 0xff);
 		}
@@ -141,8 +146,8 @@ public class BinaryFile {
 		writeByte(x);
 	}
 
-	private void writeByte(int x) {
-
+	public void writeByte(int x) {
+		assert x >= 0 && x < 256;
 		// optimized if byte-aligned
 		if (n == 0) {
 			try {
@@ -165,7 +170,7 @@ public class BinaryFile {
 	public void close() {
 		try {
 			if (readOrWrite == 'w') {
-				flush();
+				// flush();
 				inw.close();
 			} else if (readOrWrite == 'r')
 				inr.close();
@@ -183,4 +188,23 @@ public class BinaryFile {
 		}
 	}
 
+	public int readInt() {
+		int x = 0;
+		for (int i = 0; i < 4; i++) {
+			char c = readChar();
+				x <<= 8;
+				x |= c;
+		}
+		return x;
+	}
+	   /**
+     * Write the 32-bit int to standard output.
+     * @param x the {@code int} to write.
+     */
+    public  void write(int x) {
+        writeByte((x >>> 24) & 0xff);
+        writeByte((x >>> 16) & 0xff);
+        writeByte((x >>>  8) & 0xff);
+        writeByte((x >>>  0) & 0xff);
+    }
 }

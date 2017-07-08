@@ -205,7 +205,7 @@ public final class BinaryStdIn3 {
      */
     public static int readInt() {
         int x = 0;
-        for (int i = 0; !isEmpty() && i < 4; i++) {
+        for (int i = 0;  i < 4; i++) {
             char c = readChar();
             x <<= 8;
             x |= c;
