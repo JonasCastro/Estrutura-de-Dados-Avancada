@@ -73,13 +73,9 @@ public class HeapBinario<K extends Comparable<K>> {
 		int i = m;
 
 		if (heap.size() == 2) {
-			// int i = 0;
 			K min1 = heap.get(0);
 			K min2 = heap.get(1);
 			if (min1.compareTo(min2) > 0) {
-				// System.out.println("\nmin1 " +
-				// ((HuffmanTree.Node)heap.get(0)));
-				// System.out.println("min2 " + ((HuffmanTree.Node)heap.get(1));
 				if (min1.compareTo(min2) > 0) {
 					K aux = min1;
 					heap.set(0, heap.get(1));
