@@ -1,5 +1,7 @@
 import java.io.IOException;
 
+import javax.swing.JOptionPane;
+
 public class HuffmanTree {
 	// alphabet size of extended ASCII
 	private static final int R = 256;
@@ -173,7 +175,7 @@ public class HuffmanTree {
 
 	private static void compress() throws IOException {
 		// read the input
-		TextFile textFileRead = new TextFile("infile", 'r');
+		TextFile textFileRead = new TextFile("tinyTale", 'r');
 
 		String s = textFileRead.readString();
 		textFileRead.close();
@@ -194,6 +196,7 @@ public class HuffmanTree {
 		// build code table
 		String[] st = new String[R];
 		buildCode(st, root, "");
+		System.out.println("length "+input.length);
 		for (int i = 0; i < input.length; i++) {
 			// if (freq[i] != 0)
 			System.out.println(input[i] + "  " + st[input[i]]);
@@ -206,8 +209,12 @@ public class HuffmanTree {
 		 bf.flush();
 		//
 		// print number of bytes in original uncompressed message
-		bf.writeChar((char)input.length);
-		bf.flush();
+		 bf.write(input.length);
+//		bf.writeChar((char)input.length);
+//		 bf.inw.write((int)input.length);
+//		 JOptionPane.showInputDialog((char)input.length);
+//			System.out.println("length=" +input.length);
+//		bf.flush();
 //		bf.close();
 		System.out.println("pegamah");
 //		 BinaryFile bf2 = new BinaryFile("saida", 'w');
@@ -298,14 +305,17 @@ public class HuffmanTree {
 		Node root =readTrie(tx2);
 //		tx2.close();
 		System.out.println("expand-----------------------------------");
-		BTreePrinter.printNode(root);
+//		BTreePrinter.printNode(root);
 
 //		BinaryFile txw = new BinaryFile("saida2", 'w');
 		// number of bytes to write
-		tx2.fillBuffer();
-		int length = (int) tx2.readChar();
+//		
+		
+		
+		int length = tx2.readInt();
+//		int length = tx2.inr.read();
 //		tx2.close();
-		System.out.println("length=" +length);
+		System.out.println("vlength=" +length);
 //		// decode using the Huffman trie
 		for (int i = 0; i< length; i++) {
 			Node x = root;
@@ -318,7 +328,7 @@ public class HuffmanTree {
 				else
 					x = x.getLeft();
 			}
-			// System.out.println(x.getCh() +" "+b);
+			 System.out.println(x.getCh() +" "+b);
 			BinaryStdOut2.write(x.getCh(), 8);
 		}
 		tx2.close();

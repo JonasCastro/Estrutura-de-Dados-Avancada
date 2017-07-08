@@ -94,12 +94,12 @@ public class BinaryFile {
 		if (n == 0)
 			return;
 		if (n > 0) {
-			System.out.println("clearBuffer : " + buffer);
+//			System.out.println("clearBuffer : " + buffer);
 			buffer <<= (8 - n);
 
 		}
 		try {
-			System.out.println("clearBuffer : " + buffer);
+			System.out.println("-------------------clearBuffer : " + (char)buffer);
 			inw.write(buffer);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -140,9 +140,10 @@ public class BinaryFile {
 	}
 
 	public void writeChar(char x) {
+		System.out.println("writeChar= "+x);
 		if (x < 0 || x >= 256)
 			throw new IllegalArgumentException("Illegal 8-bit char = " + x);
-		System.out.println("writeChar: " + x);
+//		System.out.println("writeChar: " + x);
 		writeByte(x);
 	}
 
@@ -188,15 +189,16 @@ public class BinaryFile {
 		}
 	}
 
-	public int readInt() {
-		int x = 0;
-		for (int i = 0; i < 4; i++) {
-			char c = readChar();
-				x <<= 8;
-				x |= c;
-		}
-		return x;
-	}
+	  public  int readInt() {
+		  fillBuffer();
+	        int x = 0;
+	        for (int i = 0; i < 4; i++) {
+	            char c = readChar();
+	            x <<= 8;
+	            x |= c;
+	        }
+	        return x;
+	    }
 	   /**
      * Write the 32-bit int to standard output.
      * @param x the {@code int} to write.
