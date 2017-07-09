@@ -1,0 +1,47 @@
+
+Nome do arquivo comprimido: arg/AVLTree.txt
+
+Taxa de compressão: 1.0078902
+
+Nome do arquivo comprimido: arg/EDA_ProjetoFinal.txt
+
+Taxa de compressão: 0.88750166
+
+Nome do arquivo comprimido: arg/Estruturas de Dados_ Algoritmo de Huffman.txt
+
+Taxa de compressão: 1.0130618
+
+Nome do arquivo comprimido: arg/HeapBinario.txt
+
+Taxa de compressão: 1.0175654
+
+Nome do arquivo comprimido: arg/leipzig1M.txt
+
+Taxa de compressão: 0.89982176
+
+Nome do arquivo comprimido: arg/Linux Howtos: C_C++ -> Sockets Tutorial.txt
+
+Taxa de compressão: 0.9823239
+
+Nome do arquivo comprimido: arg/movies.txt
+
+Taxa de compressão: 0.97647303
+
+Nome do arquivo comprimido: arg/SearchFilm.txt
+
+Taxa de compressão: 1.0683519
+
+Nome do arquivo comprimido: arg/tinyTale.txt
+
+Taxa de compressão: 0.9133574
+
+Nome do arquivo comprimido: arg/TwoThreeTreeST.txt
+
+Taxa de compressão: 0.99717313
+
+													MEDIA
+
+(1.0078902 + 0.88750166 +1.0130618 +1.0175654 + 0.89982176+0.982323 + 0.97647303 + 1.0683519 + 0.9133574+ 0.99717313 ) / 10
+
+=> 0.976351928
+

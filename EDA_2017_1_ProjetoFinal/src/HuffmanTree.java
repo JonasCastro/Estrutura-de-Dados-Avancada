@@ -1,4 +1,6 @@
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class HuffmanTree {
@@ -71,7 +73,7 @@ public class HuffmanTree {
 		while (heap.size() > 1) {
 			Node left = precedencia(heap.extractMin(), heap);
 			Node right = precedencia(heap.extractMin(), heap);
-			Node parent = new Node('-', left.freq + right.freq, left, right);
+			Node parent = new Node('\0', left.freq + right.freq, left, right);
 			heap.insert(parent);
 		}
 		return heap.extractMin();
@@ -149,18 +151,16 @@ public class HuffmanTree {
 		}
 		bf.flush();
 		bf.close();
-		buildDebugging(infile, outfile, input, codigos, freq, root);
+		buildDebugging(infile, outfile, input, codigos, freq);
 	}
 
-	private static void buildDebugging(String infile, String outfile, char[] input, String[] codigos, int[] freq,
-			Node root) {
+	private static void buildDebugging(String infile, String outfile, char[] input, String[] codigos, int[] freq) {
 		Debugging debugging = Debugging.getInstance();
 		debugging.setNomeArquivo(outfile);
 		debugging.setNomeArquivoIn(infile);
 		debugging.setInput(input);
 		debugging.setCodigos(codigos);
 		debugging.setFrequencia(freq);
-		debugging.setRoot(root);
 
 	}
 
@@ -207,13 +207,12 @@ public class HuffmanTree {
 	}
 
 	public static void expand(String infile, String outfile) throws IOException {
-		infile = "saida";
-		outfile = "saida2";
+		// infile = "saida";
+		// outfile = "saida2";
 		// • Ler a árvore de Huffman do arquivo de entrada
 		BinaryFile bfr = new BinaryFile(infile, 'r');
 		Node root = readTrie(bfr);
 		rooot = root;
-		BTreePrinter.printNode(root);
 
 		// • Ler numero de bytes
 		int length = bfr.readInt();
@@ -236,38 +235,38 @@ public class HuffmanTree {
 	}
 
 	public static void main(String[] args) throws IOException {
-//		System.out.println(args[0]);
-//		System.out.println(args[1]);
-//		System.out.println(args[2]);
-//		System.out.println(args.length);
 
-		if (args[2].equals("-c")) {
+		switch (args[2]) {
+		case "-c":
 
-			compress("tale", args[1]);
-//			expand(args[0], args[1]);
+			compress(args[0], args[1]);
 
 			if (args.length == 4 && args[3].equals("-v")) {
-				System.out.println(Debugging.getInstance());
-				System.out.println("\n\nÁrvore de Huffman:");
-				BTreePrinter.printNode(rooot);
-				
 
+				System.out.println("\n\nÁrvore de Huffman:");
+				 BTreePrinter.printNode(rooot);
+				System.out.println(Debugging.getInstance());
 			}
 
-		} else if (args[0].equals("-d")) {
+			break;
+
+		case "-d":
+
 			expand(args[0], args[1]);
 
 			if (args.length == 4 && args[3].equals("-v")) {
-				System.out.println("Nome do arquivo descomprimido:");
+				System.out.println("\n\nNome do arquivo descomprimido:");
 				System.out.println(args[1]);
-				
+
 				System.out.println("\n\nÁrvore de Huffman:");
 				BTreePrinter.printNode(rooot);
 			}
-		}
 
-		else
+			break;
+
+		default:
 			throw new IllegalArgumentException("Illegal command line argument");
+		}
 
 	}
 

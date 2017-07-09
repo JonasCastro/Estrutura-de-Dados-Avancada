@@ -1,0 +1,1196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- saved from url=(0085)https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#tinytinyTaleHuffman -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+ 
+<title>Estruturas de Dados: Algoritmo de Huffman</title>
+<meta name="author" content="Paulo Feofiloff">
+<meta name="description" content="Curso de Estruturas de Dados para Ciência da Computação, USP.">
+<meta name="keywords" content="">
+<meta name="language" content="Portuguese">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="./Estruturas de Dados_ Algoritmo de Huffman_files/style.css">
+<link rel="stylesheet" media="(max-width:1024px)" href="./Estruturas de Dados_ Algoritmo de Huffman_files/style-mobile.css" type="text/css">
+<link rel="stylesheet" media="print" href="./Estruturas de Dados_ Algoritmo de Huffman_files/style-print.css" type="text/css">
+<script async="" src="./Estruturas de Dados_ Algoritmo de Huffman_files/analytics.js"></script><script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11351977-2', 'auto');
+  ga('send', 'pageview');
+</script>
+</head>
+<body>
+
+
+
+
+ 
+
+<p class="menu">
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/index.html">Estruturas de Dados</a> | 
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/index.html">Aulas</a> |
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/dictionary.html">Dicionário</a> |
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/resources.html">Bibliografia</a>
+
+
+
+
+
+
+
+</p><div class="narrowpage">
+<h1>Algoritmo de Huffman para compressão de dados</h1>
+
+<p>
+Livro de SW: sec.5.5, p.826-838.&nbsp;
+Website do livro:
+<a href="http://algs4.cs.princeton.edu/55compression/">resumo sec.5.5</a>,
+<a href="http://algs4.cs.princeton.edu/lectures/55DataCompression.pdf">slides</a>.
+Veja também a página 
+<a href="http://algs4.cs.princeton.edu/code/">http://algs4.cs.princeton.edu/code/</a>,
+que tem o código fonte, a API,
+e dados de teste de todos os programas do livro.
+
+
+
+</p><div class="small">
+<p class="tinybottom">Resumo:
+</p><ul class="notop">
+<li>
+códigos livres de prefixo
+</li><li>
+trie que representa uma tabela de códigos
+</li><li>
+trie de Huffman
+</li><li>
+construção da trie de Huffman
+</li><li>
+como representar a trie de Huffman no fluxo comprimido
+</li></ul>
+
+<p class="tinybottom">Pré-requisitos:
+</p><ul class="notop">
+<li>
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/compress.html">generalidades sobre compressão de dados</a>
+</li><li>
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/priority.html">filas priorizadas</a>
+</li><li>
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/binary-IO.html">entrada e saída binárias</a>
+</li></ul>
+</div>
+
+
+
+
+
+
+<h2 class="aula">Ideias básicas</h2>
+
+<ul>
+
+<li class="item">
+O algoritmo  de Huffman recebe um fluxo de bits
+e devolve um fluxo de bits comprimido que 
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/compress.html#compress-expand">representa o fluxo original</a>.
+Em geral, o fluxo comprimido é mais curto que o original.
+
+
+</li><li class="item">
+O fluxo de bits original é lido de 8 em 8&nbsp;bits,
+como se fosse um fluxo de caracteres:
+<pre class="code lesstop whitebg">010000010100001001010010010000010100001100000010100010001000001001000010010100100100000100100001
+       A       B       R       A       C       A       D       A       B       R       A       !
+</pre>
+
+
+</li><li class="item">
+Tudo se passa como se o algoritmo transformasse
+uma <em>string</em> em uma <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/binary-IO.html#bitstream">cadeia de bits</a>.&nbsp;
+Exemplo: transforma&nbsp; <tt>ABRACADABRA!</tt>&nbsp;
+em&nbsp; <tt>011111110011001000111111100101&#8201;</tt>.
+
+
+</li><li class="item" id="code">
+Cada caractere da string original é convertido em uma pequena 
+cadeia de bits,
+que é o seu <dfn>código</dfn>.&nbsp;
+Por exemplo,&nbsp; <tt>C</tt>&nbsp; é convertido
+em&nbsp;&nbsp;<tt>110&#8201;</tt>.
+
+</li><li class="item">
+Ideia do algoritmo de Huffman:
+<span class="orange">
+usar códigos curtos para os caracteres que ocorrem com frequência
+e deixar os códigos mais longos para os caracteres mais raros.</span>&nbsp;
+Os&nbsp;códigos são, portanto, de <em>comprimento variável</em>.
+
+
+</li></ul>
+
+
+
+
+
+
+<h2 class="aula">Compressão (codificação)</h2>
+
+<ul>
+
+<li class="item">
+A <dfn>tabela de códigos</dfn>
+leva cada caractere (de 8 bits) 
+no seu código.&nbsp;&nbsp;
+Dois exemplos,
+um com códigos de comprimento fixo
+e outro com códigos de comprimento variável:
+<pre class="code lesstop whitebg">!  001                 !  1010
+A  010                 A  0
+B  011                 B  111
+C  100                 C  1011
+D  101                 D  100
+R  110                 R  110
+...                    ...
+</pre>
+
+
+</li><li class="item">
+A escolha da melhor tabela de códigos 
+é o segredo do algoritmo de Huffman
+e será discutida <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#Huffman-trie">abaixo</a>.
+
+
+</li><li class="item">
+A tabela de códigos é uma <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/st.html#basics">TS</a>
+em que as chaves são os caracteres e os valores são os códigos.
+
+
+</li><li class="item" id="codetable">
+A tabela de códigos será repesentada por um simples
+vetor de strings&nbsp;
+<span class="orange"><tt>st[0..255]</tt></span>&nbsp;
+indexado pelos 256 caracteres ASCII.&nbsp;
+Cada <tt>st[c]</tt> é uma string de&nbsp;
+<tt>0</tt>s&nbsp; e&nbsp;&nbsp;<tt>1</tt>s&nbsp;
+que será convertida na correspondente cadeia de bits
+no momento apropriado.
+
+
+
+</li><li class="item" id="part-of-compress">
+
+
+É fácil produzir o
+fluxo de bits <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/compress.html#coded">codificado</a>
+a partir da tabela&nbsp;<tt>st[]</tt>:
+<pre class="code">public static void <span class="borange">compress</span>() {
+   String s = BinaryStdIn.readString();
+   char[] input = s.toCharArray();
+
+   <span class="dim">// cálculo da tabela de códigos st[]</span>
+   <span class="dim">// discutido mais adiante</span>
+
+   for (int i = 0; i &lt; input.length; i++) {
+      String code = st[input[i]];
+      for (int j = 0; j &lt; code.length(); j++)
+      if (code.charAt(j) == '1')
+           BinaryStdOut.write(true);
+      else BinaryStdOut.write(false);
+   }
+   BinaryStdOut.close();
+}
+</pre>
+
+
+</li></ul>
+
+
+
+
+
+
+
+
+
+
+
+<h2 class="aula">Expansão (decodificação)</h2>
+
+<ul>
+
+<li class="item">
+
+Na decodificação,
+cada <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#code">código de caractere</a>
+deve ser convertido no correspondente caractere.&nbsp;
+
+A&nbsp;tabela de códigos deve ser <em>injetiva</em>
+(caracteres diferentes devem ter códigos diferentes).&nbsp;
+Mas isso não basta.
+
+
+
+</li><li class="item">
+Exemplo:&nbsp; A tabela de códigos abaixo
+transforma&nbsp;&nbsp; <tt>ABRACADABRA!</tt>&nbsp;&nbsp;
+em&nbsp;&nbsp;&nbsp; 
+<tt>01000010100100011</tt>&nbsp;.&nbsp;
+Mas essa cadeia de bits também representa&nbsp;
+<tt>CRRDDCRCB&#8201;</tt>.&nbsp;
+Isso contraria a 
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/compress.html#compress-expand">regra do jogo</a>!
+<pre class="code lesstop whitebg">!  11
+A  0
+B  1
+C  01 
+D  10
+R  00
+</pre>
+
+
+
+
+</li><li class="item">
+
+A tabela deve ser livre de prefixos.&nbsp;
+Uma tabela de códigos é <dfn>livre de prefixos</dfn>
+(prefix-free) se nenhum código é prefixo de outro.
+
+
+</li><li class="item">
+Exemplo: A tabela abaixo é livre de prefixos.&nbsp;
+Assim,&nbsp;&nbsp;
+<tt>ABRACADABRA!</tt>&nbsp;&nbsp;
+
+é a única decodificação possível de&nbsp;&nbsp; 
+<tt>011111110011001000111111100101</tt>&nbsp;.
+<pre class="code lesstop whitebg">!  101
+A  0
+B  1111
+C  110 
+D  100
+R  1110
+</pre>
+
+
+
+</li></ul>
+
+
+
+
+
+
+<h3 class="aula">Exercícios 1</h3>
+
+<ol class="exr">
+
+<li class="itemexr">
+Qual a diferença entre código de comprimento fixo
+e código de comprimento variável?
+Por que código de comprimento variável precisa ser livre de prefixos?
+Código de comprimento fixo precisa ser livre de prefixos?
+
+
+
+</li><li class="itemexr">
+(SW 5.5.1)&nbsp;
+Quais das tabelas de códigos abaixo são livres de prefixos?
+<pre class="code lesstop whitebg">A   0    0   1     1
+B   100  1   01    01
+C   10   00  001   001
+D   11   11  0001  000
+</pre>
+
+</li></ol>
+
+
+
+<h3 class="aula">Tabelas inversas e suas tries</h3>
+
+<ul>
+
+<li class="item">
+A tabela de códigos <em>inversa</em> 
+leva cada código no correspondente caractere.&nbsp;&nbsp;
+<span class="dim">(Caso especial de 
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/st-applications.html#inverse">índice invertido</a> de&nbsp;ST.)</span>&nbsp;
+Exemplo:
+<pre class="code lesstop whitebg">101   !
+0     A
+1111  B
+110   C
+100   D
+1110  R
+</pre>
+
+
+</li><li class="item">
+
+A tabela inversa é uma <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/string-STs.html">TS de strings</a>:&nbsp;
+as chaves são strings de <tt>0</tt>s e&nbsp;<tt>1</tt>s
+e os valores são caracteres.
+
+</li><li class="item">
+A tabela inversa será representada por uma <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/tries.html">trie</a>
+binária (sobre o alfabeto <tt class="ws">0 1</tt>).&nbsp;
+Como a tabela é livre de prefixos,
+as chaves estão somente nas folhas.
+<span class="dim">(Portanto, não há nós com apenas um filho.)</span>
+Diremos que essa é a <em>trie do código</em>.
+
+
+
+</li><li class="item" id="Two-prefix-free-codes">
+Dois exemplos
+de tabelas de códigos livres de prefixos
+e suas tries.&nbsp;
+As taxas de compressão de&nbsp;
+<tt>ABRACADABRA!</tt>&nbsp;
+são diferentes nos dois exemplos:
+<p class="fig">
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/HuffABRAtwo.png" height="450" title="Copied from Algorithms, 4th. ed., by Sedgewick and Wayne" alt="[Two prefix-free codes (p.827)]">
+
+
+
+
+
+
+
+
+</p></li><li class="item" id="Node">
+Nós da trie:
+
+<pre class="code">private static class <span class="borange">Node</span> implements Comparable&lt;Node&gt; {
+   private char ch;   <span class="dim">// usado só nas folhas</span>
+   private int freq;  <span class="dim">// usado só para construção da trie</span>
+   private final Node left, right;
+
+   Node(char ch, int freq, Node left, Node right) {
+       this.ch = ch;
+       this.freq = freq;
+       this.left = left;
+       this.right = right;
+   }
+
+   public boolean isLeaf() { 
+      return left == null &amp;&amp; right == null; 
+   }
+
+   public int compareTo(Node that) { 
+      return this.freq - that.freq; 
+   }
+}
+</pre>
+
+
+
+
+</li><li class="item" id="expand">
+Dada a trie do código,
+como decodificar o fluxo de bits?&nbsp;
+Basta fazer uma busca por cada uma das <tt>N</tt> chaves:
+
+
+<pre class="code">public static void <span class="borange">expand</span>() {
+   Node root = readTrie();        <span class="dim">// discutido <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#readTrie">abaixo</a></span>
+   int N = BinaryStdIn.readInt(); <span class="dim">// comprimento da string original</span>
+
+   for (int i = 0; i &lt; N; i++) {  <span class="dim">// decodifica próximo caractere</span>
+      Node x = root;
+      while (!x.isLeaf())
+         if (BinaryStdIn.readBoolean())
+              x = x.right;
+         else x = x.left;
+      BinaryStdOut.write(x.ch);
+   }
+   BinaryStdOut.close();
+}
+</pre>
+
+
+</li></ul>
+
+
+
+
+
+<h3 class="aula">Exercícios 2</h3>
+
+<ol class="exr">
+
+<li class="itemexr">
+Qual a relação entre tries binárias e códigos livres de prefixos?
+Qualquer trie binária representa um código livre de prefixos?
+
+</li><li class="itemexr">
+Todos os códigos livre de prefixo produzem strings codificadas
+de comprimento mínimo?
+
+</li></ol>
+
+
+
+
+
+
+
+
+
+<h2 class="aula" id="Huffman-trie">Construção da trie de Huffman</h2>
+
+<ul>
+
+<li class="item">
+O segredo do algoritmo de Huffman está na maneira de escolher
+a tabela de códigos.
+
+
+</li><li class="item">
+A tabela de códigos de Huffman não é universal.
+Ela é construída sob medida para a string a ser codificado
+de tal modo que o comprimento da cadeia codificada
+seja o menor possível
+(quando comparado com outros códigos livres de prefixos).
+
+
+</li><li class="item">
+Primeiro, construímos a trie do código,
+depois extraímos dela a tabela de códigos.
+Dada a string a ser codificada,
+a trie é construída assim:
+<ol>
+<li>determine a frequência
+(ou seja, o número de ocorrências)
+de cada caractere da string original,
+</li><li>para cada caractere,
+crie um <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#Node">nó</a>
+e armazene o caractere e sua frequência nos campos <tt>ch</tt>
+e <tt>freq</tt>;
+</li><li>organize o conjunto de nós em uma trie
+conforme o seguinte algoritmo.
+</li></ol>
+
+
+</li><li class="item">
+Algoritmo de construção da trie do código:
+<ol>
+
+<li>no início de cada iteração temos um conjunto de tries
+mutuamente disjuntas
+(no início da primeira iteração, cada trie tem um único nó);
+</li><li>
+escolha duas tries cujas raízes,
+digamos <tt>x</tt> e&nbsp;<tt>y</tt>,
+tenham <tt>freq</tt> mínima;
+</li><li>
+crie um novo nó <tt>parent</tt>
+e faça com que <tt>x</tt> e <tt>y</tt> sejam filhos desse nó;
+</li><li>
+faça <tt>parent.freq</tt> igual a <tt class="ws">x.freq + y.freq</tt>;
+</li><li>
+repita esse processo até que o conjunto de tries tenha uma só trie.
+</li></ol>
+
+
+
+</li><li class="item" id="abraHuffman">
+Exemplo:
+Veja o <a href="http://algs4.cs.princeton.edu/lectures/55DemoHuffman.mov">algoritmo em ação</a>
+aplicado à string&nbsp;
+<tt>ABRACADABRA!&#8201;</tt>.&nbsp;
+Qual o comprimento da string codificada?
+Compare com as tabelas de código
+no <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#Two-prefix-free-codes">início da página</a>.
+<p class="fig">
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/HuffABRAopt.png" height="180" title="Copied from Algorithms, 4th. ed., by Sedgewick and Wayne" alt="[A Huffman code (p.829)]">
+
+
+
+
+
+</p></li><li class="item">
+Outro exemplo: Considere a string&nbsp;&nbsp;
+<tt class="wrap">it&nbsp;was the best of times it was the worst of&nbsp;times<tt class="control">LF</tt></tt>&nbsp;&nbsp;
+(sendo <tt class="control">LF</tt> o caractere
+<tt>10</tt>, ou <tt>0A</tt> em hexadecimal,
+que indica fim de linha).&nbsp;
+As&nbsp;frequências dos caracteres são
+
+<pre class="code lesstop lessbottom">a  b  e  f  h  i  m  o  r  s  t  w  <tt class="control">LF</tt>&#8201; <tt class="control">SP</tt>
+2  1  5  2  2  4  2  3  1  6  8  3  1  11
+</pre>
+<p class="afterul">
+(Aqui, <tt class="control">SP</tt> é o caractere
+<tt>32</tt>, ou <tt>20</tt> em hexadecimal,
+que representa um espaço.)&nbsp;&nbsp;
+
+Segue a construção da trie de Huffman:
+</p><p class="fig">
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/HuffTinyTinyTrace.png" height="850" title="Copied from Algorithms, 4th. ed., by Sedgewick and Wayne" alt="[Constructing a Huffman encoding trie (p.831)]">
+
+
+
+</p></li><li class="item" id="tinytinyTaleHuffman">
+
+Trie de Huffman do exemplo:
+<p class="fig">
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/HuffTinyTiny.png" height="280" title="Copied from Algorithms, 4th. ed., by Sedgewick and Wayne" alt="[Huffman code for the character stream it was the best of times it was the worst of times LF (p.832)]">
+
+
+
+
+
+
+
+
+</p></li><li class="item" id="buildTrie">
+O seguinte método implementa o algoritmo de construção da trie de Huffman
+a partir do vetor de frequências <tt>freq[]</tt>.&nbsp;
+O método usa uma <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/priority.html">fila priorizada</a>
+e devolve a raiz da trie:
+
+<pre class="code">private static Node <span class="borange">buildTrie</span>(int[] freq) {
+   MinPQ&lt;Node&gt; pq = new <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/priority.html#intro">MinPQ</a>&lt;Node&gt;();
+   for (char c = 0; c &lt; R; c++)
+      if (freq[c] &gt; 0)
+         pq.insert(new Node(c, freq[c], null, null));
+
+   while (pq.size() &gt; 1) { 
+      Node x = pq.delMin();
+      Node y = pq.delMin();
+      Node parent = new Node('\0', x.freq + y.freq, x, y);
+      pq.insert(parent);
+   }
+   return pq.delMin();
+}
+</pre>
+
+
+
+</li><li class="item" id="buildCode">
+A tabela de códigos <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#codetable"><tt>st[]</tt></a>
+(usada na codificação)
+é calculada a partir da trie que acabamos de construir:
+
+<pre class="code">private static String[] <span class="borange">buildCode</span>(Node root) { 
+   String[] st = new String[R];
+   buildCode(st, root, "");
+   return st;
+}
+
+private static void buildCode(String[] st, Node x, String s) { 
+   if (x.isLeaf()) { 
+      st[x.ch] = s; 
+      return; 
+   }
+   buildCode(st, x.left, s + '0');
+   buildCode(st, x.right, s + '1');
+}
+</pre>
+
+
+
+</li></ul>
+
+
+
+
+
+
+
+
+
+<h3 class="aula">Exercícios 3</h3>
+
+<ol class="exr">
+
+
+
+<li class="itemexr">
+Escreva a cadeia de bits que codifica a string&nbsp;&nbsp;
+<tt>ABRACADABRA!</tt>&nbsp;&nbsp;
+usando o código de Huffman calculado <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#abraHuffman">acima</a>.&nbsp;
+Quantos bits tem a cadeia?&nbsp;
+Insira espaços para facilitar a leitura.
+
+
+</li><li class="itemexr">
+Escreva a cadeia de bits que codifica a string&nbsp;&nbsp;
+<tt class="wrap">it&nbsp;was the best of times it was the worst of&nbsp;times<tt class="control">LF</tt></tt>&nbsp;&nbsp;
+usando o código de Huffman calculado acima.&nbsp;
+Quantos bits tem a cadeia?&nbsp;
+Qual a taxa de compressão?&nbsp;
+Insira espaços e quebras de linha para facilitar a leitura.
+
+
+
+</li><li class="itemexr">
+Suponha dada a tabela de códigos Huffman
+de uma string&nbsp;<var>s</var>.&nbsp;
+Dê a tabela de códigos de uma permutação de&nbsp;<var>s</var>.
+
+
+</li><li class="itemexr">
+<em>Unicidade</em>.
+Mostre que a trie de Huffman não é unica.&nbsp;
+Use a string&nbsp; <tt>ABRACADABRA!</tt>&nbsp;
+como exemplo.&nbsp;
+Faça um exemplo mais interessante que a mera troca de 0 por 1 e vice-versa.
+
+
+</li><li class="itemexr">
+(SW 5.5.14)&nbsp;
+Suponha que as frequências dos caracteres de uma string são todas diferentes.
+A trie de Huffman é única?
+
+
+
+</li><li class="itemexr">
+(SW 5.5.19)&nbsp;
+Mostre que há pelo menos 2<sup><var>N</var>&#8722;1</sup>
+diferentes códigos de Huffman para cada string de <var>N</var> caracteres.
+
+
+</li><li class="itemexr">
+(SW 5.5.10)&nbsp;
+Construa a trie de Huffman
+para a string&nbsp;
+<tt>it was the age of foolishness</tt>&nbsp;.&nbsp;
+Quantos bits tem a cadeia codificada?
+
+
+</li><li class="itemexr">
+(SW 5.5.11)&nbsp;
+Como é o código de Huffman
+de uma string sobre um alfabeto de duas letras?
+Dê um exemplo para mostrar o número máximo de bits
+na versão codificada de uma string de <var>N</var> letras
+sobre um alfabeto de duas letras?
+
+
+</li><li class="itemexr">
+(SW 5.5.12)&nbsp;
+Suponha que as frequências relativas
+
+dos caracteres
+(número de ocorrências dividido pelo número total de caracteres)
+sejam potências
+negativas de 2 (ou seja, 2<sup>&#8722;1</sup>, 2<sup>&#8722;2</sup>, etc.)&nbsp;
+Descreva o código de Huffman.
+
+
+
+</li><li class="itemexr">
+
+Suponha que o alfabeto de uma string <var>s</var>
+tem apenas 6 caracteres diferentes
+
+e que todos os caracteres têm a mesma frequência.
+Submeta <var>s</var> ao algoritmo de compressão de Huffman
+e seja <var>h</var>(<var>s</var>) a string de bits 
+que resulta da substituição de cada caractere de&nbsp;<var>s</var>
+pelo seu código.
+(Portanto, <var>h</var>(<var>s</var>) não inclui 
+a representação da trie de Huffman,
+nem a representação do comprimento de&nbsp;<var>s</var>, 
+nem qualquer enchimento.)&nbsp;
+Calcule a taxa <var>m</var>/<var>n</var>,
+sendo <var>m</var> o número de bits de&nbsp;<var>h</var>(<var>s</var>)
+e <var>n</var> é o número de bits de&nbsp;<var>s</var>.
+Repita o exercício com 5 no lugar de&nbsp;6.&nbsp;
+
+
+</li><li class="itemexr">
+(SW 5.5.13)&nbsp;
+Suponha que todos os caracteres de uma string têm a mesma frequência.
+Descreva o código de Huffman.
+
+
+</li><li class="itemexr">
+(SW 5.5.18)&nbsp;
+Seja <var>F</var><sub><var>k</var></sub>
+o <var>k</var>-ésimo número de Fibonacci.&nbsp;
+(Lembrete:
+<span class="nw"><var>F</var><sub>1</sub> = 1</span>.)&nbsp;
+Considere um conjunto de <var>n</var> caracteres tal que
+a frequência do <var>k</var>-ésimo é <var>F</var><sub><var>k</var></sub>.
+Note que 
+<span class="nw"><var>F</var><sub>1</sub> +
+<var>F</var><sub>2</sub> + … +
+<var>F</var><sub><var>n</var></sub> = 
+<var>F</var><sub><var>n</var>+2</sub> &#8722; 1</span>.&nbsp;
+Descreva o código de Huffman.
+Dica: o código mais longo tem <span class="nw"><var>n</var>&#8722;1</span> bits.
+
+</li><li class="itemexr">
+(SW 5.5.20)&nbsp;
+Dê uma cadeia codificada de Huffman
+que tenha <em>muito</em> mais 0s que&nbsp;1s.
+
+
+</li><li class="itemexr">
+(SW 5.5.21)&nbsp;
+Prove que o código mais longo e o segundo mais longo 
+de uma tabela de Huffman
+têm o mesmo comprimento.
+
+
+
+</li><li class="itemexr">
+(SW 5.5.22)&nbsp;
+Suponha que a frequência de um caractere <var>c</var>
+é estritamente maior que a frequência de um caractere&nbsp;<var>d</var>.
+Mostre que o código de Huffman de <var>c</var>
+tem comprimento menor ou igual que o comprimento do código de&nbsp;<var>d</var>.
+
+
+</li><li class="itemexr">
+(SW 5.5.9b)&nbsp;
+Estime a taxa de compressão da codificação de Huffman
+de uma sequência de <var>N</var> de caracteres ASCII aleatórios
+(em cada posição, todos os caracteres são igualmente prováveis).
+ 
+</li></ol>
+
+
+
+
+
+
+
+<h2 class="aula">Mais detalhes do método de compressão</h2>
+
+<ul>
+
+<li class="item" id="compress">
+Agora que temos os métodos
+<tt>buidTrie()</tt> e <tt>buildCode()</tt>,
+podemos completar o método de compressão
+(já exibido parcialmente <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#part-of-compress">acima</a>).
+
+<pre class="code">public static void <span class="borange">compress</span>() {
+   String s = BinaryStdIn.readString();
+   char[] input = s.toCharArray();
+
+   int[] freq = new int[R];
+   for (int i = 0; i &lt; input.length; i++)
+      freq[input[i]]++;
+
+   Node root = <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#buildTrie">buildTrie</a>(freq);
+
+   String[] st = new String[R];
+   <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#buildCode">buildCode</a>(st, root, "");
+
+   writeTrie(root);  <span class="dim">// discutido abaixo</span>
+
+   BinaryStdOut.write(input.length);
+
+   for (int i = 0; i &lt; input.length; i++) {
+      String code = st[input[i]];
+      for (int j = 0; j &lt; code.length(); j++)
+      if (code.charAt(j) == '1')
+           BinaryStdOut.write(true);
+      else BinaryStdOut.write(false);
+   }
+   BinaryStdOut.close();
+}
+</pre>
+
+
+</li></ul>
+
+
+
+
+
+
+<h3 class="aula">Exercícios 4</h3>
+
+<ol class="exr">
+
+<li class="itemexr">
+
+Discuta a seguinte maneira alternativa de calcular as frequências:
+<pre class="code lesstop whitebg">   int[] freq = new int[R];
+   for (int c = 0; c &lt; R; c++)
+      for (int i = 0; i &lt; input.length; i++)
+         if (input[i] == c) freq[c]++;
+</pre>
+
+</li></ol>
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 class="aula">A trie de Huffman é ótima</h2>
+
+<ul>
+
+
+
+
+
+<li class="item">
+<img src="./Estruturas de Dados_ Algoritmo de Huffman_files/attention-black-on-yellow.jpg" height="18" alt="[!]">
+Proposição U. 
+
+A cadeia de bits produzida pelo algoritmo de Huffman
+é mínima no seguinte sentido:&nbsp;
+nenhuma outra cadeia produzida por um código livre de prefixos
+é mais curta que a cadeia produzida pelo algoritmo de Huffman.
+
+
+</li></ul>
+
+
+
+
+<h2 class="aula" id="triecode">A história ainda não terminou</h2>
+
+<ul>
+
+<li class="item">
+A cadeia de bits produzida pelo algoritmo de Huffman
+não pode ser decodificada sem a correspondente trie.
+É preciso acrescentar a trie à cadeia codificada.
+
+
+
+
+</li><li class="item">
+<img src="./Estruturas de Dados_ Algoritmo de Huffman_files/attention-black-on-yellow.jpg" height="18" alt="[!]">
+Como descrever a trie de Huffman por meio de uma cadeia de bits?&nbsp;
+Resposta: percorra a trie em <em>pré-ordem</em>
+(visite a raiz, depois a subtrie esquerda, depois a subtrie direita).
+Sempre que visitar um nó interno, escreva um bit <tt>0</tt>.
+Sempre que visitar uma folha, escreva um bit <tt>1</tt> seguido
+pelos 8 bits do caractere associado.
+Esse representação da trie é fácil produzir
+e fácil decodificar.
+
+
+
+</li><li class="item">
+Exemplo:
+
+<p class="fig">
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/HuffTrieEncode.png" height="300" title="Copied from Algorithms, 4th. ed., by Sedgewick and Wayne" alt="[Using preorder traversal to encode a trie as a bitstream (p.834)]">
+
+</p></li><li class="item" id="writeTrie">
+<img src="./Estruturas de Dados_ Algoritmo de Huffman_files/attention-black-on-yellow.jpg" height="18" alt="[!]">
+Cálculo da cadeia de bits que representa a trie:
+
+<pre class="code">private static void <span class="orange">writeTrie</span>(Node x) {
+   if (x.isLeaf()) {
+      BinaryStdOut.write(true);
+      BinaryStdOut.write(x.ch);
+      return;
+   }
+   BinaryStdOut.write(false);
+   writeTrie(x.left);
+   writeTrie(x.right);
+}
+</pre>
+
+
+
+</li><li class="item" id="readTrie">
+<img src="./Estruturas de Dados_ Algoritmo de Huffman_files/attention-black-on-yellow.jpg" height="18" alt="[!]">
+Reconstrução da trie a partir da cadeia de bits:
+
+<pre class="code">private static Node <span class="orange">readTrie</span>() {
+   if (BinaryStdIn.readBoolean()) {
+      char c = BinaryStdIn.readChar();
+      return new Node(c, 0, null, null);
+   }
+   return new Node('\0', 0, readTrie(), readTrie());
+}
+</pre>
+
+</li></ul>
+
+
+
+
+
+
+
+<h3 class="aula">Exercícios 5</h3>
+
+<ol class="exr">
+
+<li class="itemexr">
+Quantos nós internos tem uma trie de Huffman
+para <var>n</var> caracteres?
+
+
+</li><li class="itemexr">
+O fluxo de bits produzido pelo algoritmo de Huffman
+começa com uma string de bits <var>t</var> 
+que representa a trie de codificação
+e é seguido por uma string de bits <var>N</var> 
+que representa o número de caracteres do texto original.
+Como sei onde termina a string <var>t</var> 
+e começa a string&nbsp;<var>N</var>?
+
+
+</li><li class="itemexr">
+Um fluxo de bits produzido pelo método <tt>compress</tt>
+da classe <tt>Huffman</tt> começa assim:
+<pre class="code lesstop whitebg nobottom">00010101011010011001110100111100101010000101000001101010010000101110100...
+</pre>
+<p class="tinytop">Desenhe a trie do código de compressão.
+
+
+</p></li></ol>
+
+
+
+
+
+
+
+
+<h2 class="aula">Classe Huffman completa</h2>
+
+<ul>
+
+<li class="item">
+Algoritmo 
+de compressão de Huffman:
+<pre class="fcode">public class <span class="orange">Huffman</span> {
+
+   private static int R = 256; <span class="dim">// alfabeto ASCII</span>
+   
+   private static class Node implements Comparable&lt;Node&gt; { <span class="dim">/* veja <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#Node">acima</a> */</span> }
+
+   public static void expand() { <span class="dim">/* veja <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#expand">acima</a> */</span> }
+
+   private static Node buildTrie(int[] freq) { <span class="dim">/* veja <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#buildTrie">acima</a> */</span> }
+
+   private static String[] buildCode(Node root) { <span class="dim">/* veja <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#buildCode">acima</a> */</span> }
+
+   public static void compress() { <span class="dim">/* veja <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#compress">acima</a> */</span> } 
+
+   private static void writeTrie(Node x) { <span class="dim">/* veja <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#writeTrie">acima</a> */</span> } 
+
+   private static Node readTrie() { <span class="dim">/* veja <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#readTrie">acima</a> */</span> } 
+
+}
+</pre>
+
+</li></ul>
+
+
+
+
+
+<h3 class="aula">Exemplos</h3>
+
+<ul>
+
+<li class="item">
+Exemplo
+baseado no código de Huffman calculado <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#abraHuffman">acima</a>:
+<pre class="io lessbottom">% more abra.txt
+ABRACADABRA!
+
+% java Huffman - &lt; abra.tx | java BinaryDump 60
+010100000100101000100010000101010100001101010100101010000100
+000000000000000000000000000110001111100101101000111110010100
+120 bits
+</pre>
+
+<p class="tinytop tinybottom">
+Eis a repetição dos 120 bits produzidos por <tt>BinaryDump</tt>
+com espaços e quebras de linha inseridos para facilitar a leitura:
+</p><pre class="code lesstop whitebg nobottom">0 1 01000001 0 0 1 01000100 0 1 00001010 1 01000011 0 1 01010010 1 01000010
+00000000000000000000000000001100 
+0 111 110 0 1011 0 100 0 111 110 0 1010 
+0
+</pre>
+<p class="tinytop">
+Os 59 bits da primeira linha descrevem a trie,
+os 32 bits da segunda linha dão o número de caracteres da string original (12),
+os 28 bits da terceira linha são a string codificada propriamente dita,
+o bit da última é enchimento 
+para que o número total de bits seja um múltiplo de&nbsp;8.
+
+
+
+
+</p></li><li class="item">
+Exemplo:&nbsp;
+<a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html#tinytinyTaleHuffman">Codificação de Huffman</a> do arquivo <tt>tinytinyTale.txt</tt>:
+<pre class="io lessbottom">% more tinytinyTale.txt
+it was the best of times it was the worst of times 
+
+% java Huffman - &lt; tinytinyTale.txt | java BinaryDump 64
+0001011001010101110111101101111100100000001011100110010111001001
+0000101010110001010110100100010110011010110100001011011011011000
+0110111010000000000000000000000000000110011101111101001011011100
+0111111001000011010110001001110100111100001111101111010000100011
+0111110100101101110001111110010000100100011101001001110100111100
+00111110111101000010010101000000
+352 bits
+</pre>
+
+<p class="tinytop tinybottom">
+Os primeiros 139 bits representam a trie.
+Os 32 bits seguintes representam o número de caracteres, 51,
+da string original.
+Os 176 bits seguintes são a cadeia de bits codificada.
+Os últimos 5 bits são enchimento para completar um múltiplo de&nbsp;8.
+Taxa de compressão: 
+(139+32+176+5)/(51×8) = 352/408 =&nbsp;0.86.&nbsp;
+Segue a cadeia de bits codificada
+com espaços e quebras de linha inseridas
+para facilitar a leitura:
+</p><pre class="code lesstop whitebg nobottom">0 0 0 1 01100101 0 1 01110111 1 01101111 1 00100000 
+0 0 1 01110011 0 0 1 01110010 0 1 00001010 1 01100010 1 01101001 
+0 0 0 1 01100110 1 01101000 0 1 01101101 1 01100001 1 01110100 
+00000000000000000000000000110011
+1011 111 01 0010 11011 100 01 111 11001 000 01 
+101011 000 100 111 01 0011 11000 01 111 1011 11010 000 100 01 
+1011 111 01 0010 11011 100 01 111 11001 000 01
+0010 0011 10100 100 111 01 00111 1000 01 111 1011 11010 000 100 101010 
+00000
+</pre>
+<p class="tinytop tinybottom">A decodificação reproduz a string original:
+</p><pre class="io">% java Huffman - &lt; tinytinyTale.txt | java Huffman +
+it was the best of times it was the worst of times
+</pre>
+
+
+
+</li><li class="item">
+Exemplo: 
+A taxa de compressão para <tt>medTale.txt</tt>
+(primeiro capítulo de <em>Tale of Two Cities</em>) 
+é de <tt>23912/45056 = 0.53</tt>:
+<pre class="io">% java PictureDump 512 88 &lt; medTale.txt
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/PictureDump-512-88-medTale.txt.png" height="100" title="" alt="[PictureDump-512-88-medTale.txt.png]">
+45056 bits
+
+% java Huffman - &lt; medTale.txt | java PictureDump 512 47
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/PictureDump-512-47-Huffman-compressed-medTale.txt.png" height="53" title="" alt="[PictureDump-512-47-Huffman-compressed-medTale.txt.png]">
+23912 bits
+</pre>
+
+
+</li><li class="item">
+Exemplo: 
+A taxa de compressão para <a href="https://www.ime.usp.br/~pf/estruturas-de-dados/aulas/st.html#tale"><tt>tale.txt</tt></a> 
+é de <tt>3043928/5812552 = 0.52</tt>:
+<pre class="io">% java BinaryDump 0 &lt; tale.txt
+5812552 bits
+
+% java Huffman - &lt; tale.txt &gt; tale.txt.huf
+% java BinaryDump 0 &lt; tale.txt.huf
+3043928 bits
+</pre>
+
+
+
+
+</li></ul>
+
+
+
+
+
+<h2 class="aula">Comparação com outros algoritmos</h2>
+
+<ul>
+
+<li class="item">
+A compressão de Huffman é bastante flexível:
+para <tt>genomeVirus.txt </tt>
+(50000 bits)
+usa apenas 40 bits a mais que o código sob medida de 2&nbsp;bit:
+<pre class="io">% java Genome - &lt; genomeVirus.txt | java PictureDump 512 25
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/Genome-PictureDump-512-25-genomeVirus.txt.bin.png" height="30" title="" alt="[Genome-PictureDump-512-25-genomeVirus.txt.bin.png]">
+12536 bits
+
+% java Huffman - &lt; genomeVirus.txt | java PictureDump 512 25
+<img class="noborder" src="./Estruturas de Dados_ Algoritmo de Huffman_files/Huffman-PictureDump-512-25-genomeVirus.txt.bin.png" height="30" title="" alt="[Huffman-PictureDump-512-25-genomeVirus.txt.bin.png]">
+12576 bits
+</pre>
+
+
+
+</li><li class="item">
+A compressão de Huffman ganha da compressão de comprimento de carreira:
+<pre class="io">% java RunLength - &lt; q32x48.bin | java BinaryDump 0
+1144 bits
+
+% java Huffman - &lt; q32x48.bin | java BinaryDump 0
+816 bits
+
+% java RunLength - &lt; q64x96.bin | java BinaryDump 0
+2296 bits
+
+% java Huffman - &lt; q64x96.bin | java BinaryDump 0
+2032 bits
+</pre>
+
+
+
+
+
+</li></ul>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+<hr class="footer">
+<p class="footer">
+Veja <a href="http://www.ime.usp.br/~pf/analise_de_algoritmos/aulas/huffman.html">Árvores de Huffman</a> no meu website <cite>Análise de Algoritmos</cite>
+
+
+
+
+
+</p><hr class="footer2">
+<p class="footer-nw">
+www.ime.usp.br/~pf/estruturas-de-dados/<br>
+Last modified: Tue May  5 07:07:03 BRT 2015 <br>
+<em>Paulo Feofiloff</em><br>
+<a href="http://www.ime.usp.br/dcc/">Departamento de Ciência da Computação</a><br>
+<a href="http://www.ime.usp.br/">Instituto de Matemática e Estatística</a> da
+<a href="http://www.usp.br/"><abbr title="Universidade de São Paulo">USP</abbr></a>
+
+
+
+</p><p class="validator">
+<a href="http://jigsaw.w3.org/css-validator/validator?uri=http://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html">
+<img class="r" src="./Estruturas de Dados_ Algoritmo de Huffman_files/vcss.png" alt="Valid CSS!"></a>
+<a href="http://validator.w3.org/check?uri=http://www.ime.usp.br/~pf/estruturas-de-dados/aulas/huffman.html">
+<img class="r" src="./Estruturas de Dados_ Algoritmo de Huffman_files/valid-html401.png" alt="Valid HTML 4.01 Strict"></a>
+
+
+</p><p class="end-of-page">&nbsp;
+
+
+
+</p></body></html>

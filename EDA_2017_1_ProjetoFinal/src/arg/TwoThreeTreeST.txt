@@ -1,0 +1,190 @@
+package arg;
+
+public class TwoThreeTreeST<K extends Comparable<K>, V> {
+	private Node root;
+
+	protected class Node {
+
+		Node left, center, right;
+		K leftKey, rightKey;
+		V leftValue, rightValue;
+
+		public Node(K leftKey, V leftValue) {
+			this.leftKey = leftKey;
+			this.leftValue = leftValue;
+		}
+
+		public Node(K leftKey, V leftValue, Node left, Node right) {
+			this.leftKey = leftKey;
+			this.leftValue = leftValue;
+			this.left = left;
+			this.right = right;
+		}
+	}
+
+	public void put(K key, V value) {
+		Node x = put(root, key, value);
+		root = (x == null) ? root : x;
+
+	}
+
+	private Node put(Node r, K key, V value) {
+		if (r == null)
+			return new Node(key, value);
+
+		if (key.equals(r.leftKey)) {
+			r.leftValue = value;
+			return null;
+		}
+		if (key.equals(r.rightKey)) {
+			r.rightValue = value;
+			return null;
+		}
+
+		if (r.rightKey != null) {
+			if (key.compareTo(r.leftKey) < 0) {
+				Node x = put(r.left, key, value);
+				if (x != null) {
+					r.left = x;
+					r.right = new Node(r.rightKey, r.rightValue, r.center, r.right);
+					r.rightKey = null;
+					r.rightValue = null;
+					r.center = null;
+					return r;
+
+				}
+
+			} else if (key.compareTo(r.rightKey) > 0) {
+				Node x = put(r.right, key, value);
+				if (x != null) {
+					return new Node(r.rightKey, r.rightValue, new Node(r.leftKey, r.leftValue, r.left, r.center), x);
+				}
+
+			} else {
+				Node x = put(r.center, key, value);
+				if (x != null) {
+					x.left = new Node(r.leftKey, r.leftValue, r.left, x.left);
+					x.right = new Node(r.rightKey, r.rightValue, x.right, r.right);
+					return x;
+
+				}
+			}
+			return null;
+
+		} else {
+			if (key.compareTo(r.leftKey) < 0) {
+				Node x = put(r.left, key, value);
+				if (x != null) {
+					r.rightKey = r.leftKey;
+					r.rightValue = r.leftValue;
+
+					r.leftKey = x.leftKey;
+					r.leftValue = x.leftValue;
+
+					r.center = x.right;
+					r.left = x.left;
+
+				}
+
+			} else if (key.compareTo(r.leftKey) > 0) {
+				Node x = put(r.right, key, value);
+				if (x != null) {
+					r.rightKey = x.leftKey;
+					r.rightValue = x.leftValue;
+					r.center = x.left;
+					r.right = x.right;
+
+				}
+
+			}
+			return null;
+		}
+
+	}
+
+	public V get(K key) {
+		return get(root, key);
+
+	}
+
+	private V get(Node r, K key) {
+		if (r == null)
+			return null;
+
+		if (key.equals(r.leftKey))
+			return r.leftValue;
+
+		if (key.equals(r.rightKey))
+			return r.rightValue;
+
+		else {
+
+			if (key.compareTo(r.leftKey) < 0)
+				return get(r.left, key);
+
+			if (r.rightKey != null && key.compareTo(r.rightKey) < 0)
+				return get(r.center, key);
+
+			else
+				return get(r.right, key);
+		}
+
+	}
+
+	public void printString() {
+		printString(root, "");
+	}
+
+	private void printString(Node r, String recoil) {
+		if (r != null) {
+			printString(r.left, recoil + "         ");
+			System.out.println(recoil + r.leftKey + "," + r.rightKey);
+//			printString(r.center, recoil + "         ");
+			printString(r.right, recoil + "         ");
+		} else
+			System.out.println(recoil + "-");
+	}
+
+	public static void main(String[] args) {
+		TwoThreeTreeST<String, Integer> x = new TwoThreeTreeST<String, Integer>();
+		x.put("e", 1);
+		x.put("h", 2);
+		x.put("j", 3);
+		x.put("k", 4);
+		x.put("v", 5);
+//		x.put("z", 5);
+//		x.put("h", 6);
+//		x.put("c", 7);
+//		x.put("r", 8);
+//		x.put("a", 9);
+//		x.put("e", 10);
+//		x.put("s", 11);
+		x.printString();
+		// System.out.println(x.get("y"));
+		// System.out.println(x.get("l"));
+		// System.out.println(x.get("p"));
+		// System.out.println(x.get("m"));
+		// System.out.println(x.get("x"));
+		// System.out.println(x.get("h"));
+		// System.out.println(x.get("c"));
+		// System.out.println(x.get("r"));
+		// System.out.println(x.get("a"));
+		// System.out.println(x.get("e"));
+		// System.out.println(x.get("s"));
+		// System.out.println(x.get("v"));
+		// x.put("c", 77777);
+		// System.out.println(x.get("y"));
+		// System.out.println(x.get("l"));
+		// System.out.println(x.get("p"));
+		// System.out.println(x.get("m"));
+		// System.out.println(x.get("x"));
+		// System.out.println(x.get("h"));
+		// System.out.println(x.get("c"));
+		// System.out.println(x.get("r"));
+		// System.out.println(x.get("a"));
+		// System.out.println(x.get("e"));
+		// System.out.println(x.get("s"));
+		// System.out.println(x.get("v"));
+
+	}
+}

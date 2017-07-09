@@ -1,0 +1,145 @@
+Universidade Federal do Ceará - Campus de Crateús
+Bacharelado em Ciência da Computação
+Projeto Final de Estrutura de Dados Avançada
+27/06/2017
+Prof. Lı́vio Freire
+1
+Introdução
+No projeto final, usaremos o que aprendemos na disciplina de Estrutura de Dados
+Avançada para escrever um programa que comprime e descomprime arquivos de texto
+usando a Codificação de Huffman. Como referência teórica para esse tópico, deve-se
+consultar a seguinte página: https://www.ime.usp.br/~pf/estruturas-de-dados/
+aulas/huffman.html.
+Para comprimir um arquivo, o programa deve seguir os seguintes passos:
+• Ler um arquivo de entrada e calcular a frequência de todos os caracteres
+• Construir uma árvore de Huffman para todos os caracteres que aparecem no
+arquivo de entrada
+• Construir uma tabela de sı́mbolos que contém os códigos para todos os carac-
+teres do arquivo de entrada
+• Imprimir a árvore de Huffman para o arquivo de saı́da
+• Usar a tabela de sı́mbolos para codificar o arquivo
+• Imprimir a versão codificada do arquivo de entrada para o arquivo de saı́da
+Para descomprimir um arquivo, o programa deve seguir os seguintes passos:
+• Ler a árvore de Huffman do arquivo de entrada
+• Decodificar a entrada usando a árvore de Huffman
+• Se seu programa é chamado com a flag “verbose”, também deverá imprimir
+aluma informação para depuração na saı́da padrão
+2
+Compressão de Arquivos
+2.1
+Leitura do arquivo de entrada
+Para ler o arquivo de entrada, a classe TextFile deve ser implementada com os se-
+guintes métodos:
+• public TextFile(String filename, char readOrWrite)
+O construtor recebe dois parâmetros: o nome do arquivo texto e um caractere.
+Para abrir o arquivo no modo leitura, deve ser passado o caractere ‘r’. Para
+abrir o arquivo no modo escrita, deve ser passado o caractere ‘w’
+1• public boolean endOfFile()
+Retorna true se chegou ao fim do arquivo ou, caso contrário, false
+• public char readChar()
+O próximo caractere (8 bytes de dados) é lido e retornado
+• public void writeChar(char c)
+Escreve o caractere “c” no arquivo de saı́da
+• public void rewind()
+Move o cursor para o inı́cio do arquivo.
+• public void close()
+Concluı́ a manipulação do arquivo, liberando todas as conexões.
+2.2
+Construção de uma árvore de Huffman
+Construir uma árvore de Huffman envolve combinar iterativamente nós simples ou
+subárvores. No site de referência, há uma implementação para a construção dessa
+estrutura. Não se deve apenas reproduzir o código contido na referência, mas fazer sua
+própria implementação com as seguintes regras para desempatar nós com os mesmos
+valores mı́nimos:
+• subárvores com múltiplos nós têm precedência sobre nós simples
+• subárvores criadas mais recentemente têm precedência sobre subárvores antigas
+• nó simples cujo caractere precede, alfabeticamente, o caractere de outro nó
+simples tem maior precedência
+2.3
+Construção de tabelas de Huffman
+Uma vez que a árvore de Huffman tenha sido lida, o próximo passo é atribuir códigos
+para cada caractere. É possı́vel realizar isso através de percursos na árvore, mantendo-
+se o caminho seguido da raiz até o nó corrente. Quando uma folha é alcançada, o
+código é armazenado na tabela de sı́mbolos.
+2.4
+Impressão de árvores de Huffman
+Para auxiliar na impressão de arquivos comprimidos, deve-se implementar a classe
+BinaryFile com os seguintes métodos:
+• public BinaryFile(String filename, char readOrWrite)
+O construtor recebe dois parâmetros: o nome do arquivo binário e um caractere.
+Para abrir o arquivo no modo leitura, deve ser passado o caractere ‘r’. Para
+abrir o arquivo no modo escrita, deve ser passado o caractere ‘w’
+• public boolean endOfFile()
+Retorna true se chegou ao fim do arquivo ou, caso contrário, false
+• public boolean readBit()
+Lê um único bit do arquivo
+2• public void writeBit(boolean bit) Escreve um único bit no arquivo
+• public char readChar()
+O próximo caractere (8 bits de dados) é lido e retornado
+• public void writeChar(char c)
+Escreve o caractere “c” no arquivo de saı́da
+• public void close() Fecha o arquivo binário. Esse método deve ser chamado
+quando a utilização do arquivo terminar ou situações inesperadas podem acon-
+tecer, como perda de dados que deveriam ter sido escritos
+Para imprimir uma árvore de Huffman no arquivo de saı́da, basta realizar um
+percurso em preorder. É preciso guardar a informação de quais nós são interiores ou
+folhas, para isso usa-se um bit de sinal. Para cada nó interno, imprima 0 (false) no
+arquivo. Para nós folhas, imprima 1 (true) seguidos por 8 bits correspondentes a um
+caractere.
+2.5
+Codificar arquivos
+Uma vez que os códigos de Huffman são criados e a árvore é escrita no arquivo, para
+realizar a codificação basta percorrer novamente o arquivo de entrada e escrever o
+código correspondente para cada caractere. Não esqueça de fechar o arquivo quando
+a escrita terminar!
+3
+Descomprimir arquivos
+3.1
+Leitura de uma árvore de Huffman
+Para ler a árvore de Huffman, realiza-se um percurso preorder na árvore através do
+arquivo de entrada e cria-se um nó sempre que necessário.
+3.2
+Decodificação de um arquivo comprimido
+Uma vez que a árvore tenha sido criada, a decodificação é simples. Inicie a partir da
+raiz da árvore, siga o filho apropriado com base no próximo bit lido do arquivo de
+entrada e imprima o caractere quando uma folha for alcançada.
+4
+Argumentos da linha de comando
+Seu programa deve ser executado da seguinte forma:
+java Huffman (-c|-u) [-v] infile outfile
+onde:
+• “-c” refere-se a compressão e “-d” refere-se a descompressão
+• “-v” é um flag opcional que imprime informações de depuração
+• “ı̀nfile” é o nome do arquivo de entrada
+• “outfile” é o nome do arquivo de saı́da
+34.1
+Opção de depuração
+Se o arquivo é comprimido com a opção “-v”, as seguintes informações devem ser
+impressas na saı́da padrão (usando System.out.print(texto)):
+• o nome do arquivo comprimido
+• a taxa de compressão, que expressa o percentual de redução em tamanho em
+relação ao arquivo original
+• a frequência de cada caractere no arquivo de entrada. Deve-se imprimir tanto
+o código dos caracteres quanto os próprios caracteres
+• a árvore de Huffman, que deve ser impressa conforme a impressão de árvores
+binárias da questão 4 do segundo laboratório
+• os códigos Huffman para cada caractere (caracteres que não aparecem no texto
+de entrada não têm código). Mais uma vez, imprima tanto o código dos carac-
+teres quando os próprios caracteres
+Se o arquivo é descomprimido com a opção “-v”, a seguinte informação deve ser
+impressa na saı́da padrão (usando System.out.print(texto)):
+• o nome do arquivo descomprimido
+• a árvore de Huffman, que deve ser impressa conforme a impressão de árvores
+binárias da questão 4 do segundo laboratório
+5
+Questões
+1. Execute o programa sobre 10 arquivos diferentes de sua escolha. Pode ser código
+fonte, páginas web, etc. Qual a taxa de compressão, em média, é alcançada?
+2. Estenda seu algoritmo de compressão para comprimir árvores de diretórios con-
+tendo arquivos de texto. Não é necessário adicionar nenhuma opção adicional
+para execução do programa.
+3. Implemente a compressão Comprimento de Carreira (https://pt.wikipedia.
+org/wiki/Codifica%C3%A7%C3%A3o_run-length) na classe RunLength. Com-
+pare esse método de compressão com a Codificação de Huffman.
+Divirta-se!
+4

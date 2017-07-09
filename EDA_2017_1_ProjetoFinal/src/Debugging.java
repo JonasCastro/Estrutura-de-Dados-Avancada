@@ -8,7 +8,6 @@ public class Debugging {
 	private String nomeArquivo;
 	private String nomeArquivoIn;
 	private long taxadeCompressao;
-	private HuffmanTree.Node root;
 	private int[] frequencia;
 	private String[] codigos;
 	private char[] input;
@@ -38,13 +37,6 @@ public class Debugging {
 		this.taxadeCompressao = taxadeCompressao;
 	}
 
-	public HuffmanTree.Node getRoot() {
-		return root;
-	}
-
-	public void setRoot(HuffmanTree.Node root) {
-		this.root = root;
-	}
 
 	public int[] getFrequencia() {
 		return frequencia;
@@ -84,14 +76,14 @@ public class Debugging {
 				+ "\n\nFrequencia:\n" + frequencia() + "\n\nCodigo:\n" + codigo();
 	}
 
-	private String taxaCompressao() {
+	public String taxaCompressao() {
 
 		File in = new File(nomeArquivoIn);
 		long tamanhot = in.length();
 		File out = new File(nomeArquivo);
 		long tamanho = out.length();
 
-		return "" + (tamanho * 8) / (tamanhot * 8);
+		return "" + (float)(tamanho * 8) / (tamanhot * 8);
 	}
 
 	private String frequencia() {
@@ -119,6 +111,11 @@ public class Debugging {
 		}
 
 		return string;
+	}
+	public static void main(String[] args) {
+		Double x = 1.0078902 + 0.88750166 +1.0130618 +1.0175654 + 0.89982176+0.982323 + 0.97647303 + 1.0683519 + 0.9133574+ 0.99717313;
+		System.out.println(x);
+		System.out.println((Double)x/10);
 	}
 
 }

@@ -1,0 +1,172 @@
+package arg;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Queue;
+
+import org.apache.commons.lang3.StringUtils;
+
+import br.ufc.crateus.eda.st.string.TST;
+
+public class SearchFilm {
+
+	private TST<String> tree;
+
+	public SearchFilm(String arquivo) {
+		tree = buildTree(arquivo);
+	}
+
+	public TST<String> buildTree(String arquivo) {
+		String linha;
+		String newName;
+		TST<String> dicionario = new TST<>();
+
+		try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+			while ((linha = br.readLine()) != null) {
+				newName = limpar(linha);
+				if (!dicionario.contains(newName)) {
+					dicionario.put(newName, "");
+				}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return dicionario;
+	}
+
+	private String limpar(String linha) {
+		int index = linha.indexOf("(");
+		String name = linha.substring(0, index);
+		name = name.toLowerCase().trim();
+		name = StringUtils.stripAccents(name);
+		return name.replaceAll("[^a-z0-9 ]", "?");
+	}
+
+	public void Search(String string) {
+
+		Queue<String> titlesPrefix = tree.keysWithPrefix(string.replaceAll("[.]", ""));
+		String TitleLong = longTitle(titlesPrefix);
+		Queue<String> titlesCuringas = tree.keysThatMatch(string);
+
+		System.out.println("\n\tTITULOS COM PREFIXO " + string.replaceAll("[.]", "") + ":\n");
+		printQueue(titlesPrefix);
+
+		System.out.println("\n\tTITULO MAIS LONGO COM PREFIXO " + string.replaceAll("[.]", "") + ":\n");
+		System.out.println(TitleLong);
+
+		System.out.println("\n\tTITULOS QUE CASAM COM " + string + ":\n");
+		printQueue(titlesCuringas);
+
+	}
+
+	private void printQueue(Queue<String> queue) {
+		if (queue != null)
+			for (String s : queue)
+				System.out.println(s);
+	}
+
+	private String longTitle(Iterable<String> queue) {
+		if (queue == null)
+			return "";
+		String longest = "";
+		for (String s : queue)
+			if (s.length() > longest.length())
+				longest = s;
+		return longest;
+	}
+
+	public static void main(String[] args) {
+//		 System.out.println(args[1]);
+		SearchFilm busca = new SearchFilm(args[1]);
+		busca.Search(args[0]);
+		//		busca.buscar("big");
+
+		// System.out.println(StringUtils.stripAccents("áçuä再").replaceAll("[^a-z0-9
+		// ]", "?"));
+
+	}
+	
+//	--------------"assa..."--------------------
+
+//	TITULOS COM PREFIXO assa:
+//
+//assassin
+//assassin? the
+//assassination
+//assassination bureau? the
+//assassination file? the
+//assassination of trotsky? the
+//assassins
+//assault
+//assault and matrimony
+//assault at west point? the court?martial of johnson whittaker
+//assault of the killer bimbos
+//assault of the party nerds
+//assault on agathon
+//assault on precinct 13
+//assault? the
+//
+//	TITULO MAIS LONGO COM PREFIXO assa:
+//
+//assault at west point? the court?martial of johnson whittaker
+//
+//	TITULOS QUE CASAM COM assa...:
+//
+//assault
+
+//	-------------- "au........." --------------------
+//
+//			TITULOS COM PREFIXO au:
+//
+//	au pair
+//	au pair girls
+//	au revoir les enfants
+//	audrey hepburn story? the
+//	audrey rose
+//	auggie rose
+//	august
+//	aurora encounter? the
+//	aurora? operation intercept
+//	aus dem leben der marionetten
+//	austin powers? international man of mystery
+//	austin powers? the spy who shagged me
+//	author? author?
+//	automatic
+//	autumn born
+//	autumn in new york
+//
+//			TITULO MAIS LONGO COM PREFIXO au:
+//
+//	austin powers? international man of mystery
+//
+//			TITULOS QUE CASAM COM au.........:
+//
+//	audrey rose
+//	auggie rose
+//	autumn born
+	
+//	-------------- "9......." --------------------
+//
+//			TITULOS COM PREFIXO 9:
+//
+//	9 1 2 ninjas?
+//	92 in the shade
+//	976?evil
+//	976?evil 2? the astral factor
+//	99 and 44 100? dead
+//
+//			TITULO MAIS LONGO COM PREFIXO 9:
+//
+//	976?evil 2? the astral factor
+//
+//			TITULOS QUE CASAM COM 9:
+//	976?evil
+
+
+
+
+}
