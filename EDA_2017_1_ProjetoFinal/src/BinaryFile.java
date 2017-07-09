@@ -21,7 +21,7 @@ public class BinaryFile {
 
 		if (readOrWrite == 'w')
 			try {
-				this.inw = new BufferedWriter(new FileWriter(filename));
+				this.inw = new BufferedWriter(new FileWriter(filename,true));
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -30,7 +30,7 @@ public class BinaryFile {
 			try {
 
 				this.inr = new BufferedReader(new FileReader(filename));
-				fillBuffer();
+//				fillBuffer();
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -54,7 +54,7 @@ public class BinaryFile {
 
 	}
 
-	private void fillBuffer() {
+	public void fillBuffer() {
 		try {
 			buffer = inr.read();
 			n = 8;

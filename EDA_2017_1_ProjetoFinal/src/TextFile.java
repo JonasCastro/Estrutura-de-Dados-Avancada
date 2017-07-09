@@ -10,6 +10,7 @@ public class TextFile {
 	public BufferedWriter inw;
 	public BufferedReader inr;
 	private static final int EOF = -1; // end of file
+	private static int n; // number of bits left in buffer
 
 	private static int buffer; // one character buffer
 
@@ -18,12 +19,18 @@ public class TextFile {
 		this.readOrWrite = readOrWrite;
 		if (readOrWrite == 'w')
 			this.inw = new BufferedWriter(new FileWriter(filename));
-		else if (readOrWrite == 'r')
+		else if (readOrWrite == 'r'){
+		
 			this.inr = new BufferedReader(new FileReader(filename));
+//			fillBuffer();
+		}
 	}
 
 	public String readLineAll() {
 		String string = new String();
+//		fillBuffer();
+		buffer = 0;
+		
 		if (endOfFile())
 			throw new NoSuchElementException("Reading from empty input stream");
 
@@ -45,9 +52,10 @@ public class TextFile {
 	public void fillBuffer() {
 		try {
 			buffer = inr.read();
+			n = 8;
 		} catch (IOException e) {
-			System.out.println("EOF");
 			buffer = EOF;
+			n = -1;
 		}
 	}
 
