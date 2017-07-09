@@ -244,7 +244,7 @@ public class HuffmanTree {
 			if (args.length == 4 && args[3].equals("-v")) {
 
 				System.out.println("\n\nÁrvore de Huffman:");
-				 BTreePrinter.printNode(rooot);
+				PrinterTree.printNode(rooot);
 				System.out.println(Debugging.getInstance());
 			}
 
@@ -259,7 +259,7 @@ public class HuffmanTree {
 				System.out.println(args[1]);
 
 				System.out.println("\n\nÁrvore de Huffman:");
-				BTreePrinter.printNode(rooot);
+				PrinterTree.printNode(rooot);
 			}
 
 			break;
