@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class PrinterTree {
+public class PrinterTree {
 
 	public static <T extends Comparable<?>> void printNode(HuffmanTree.Node root) {
 		int maxLevel = PrinterTree.maxLevel(root);
