@@ -160,7 +160,7 @@ public class BinaryFile {
 	}
 
 	public int readInt() {
-		fillBuffer();
+		
 		int x = 0;
 		for (int i = 0; i < 4; i++) {
 			char c = readChar();

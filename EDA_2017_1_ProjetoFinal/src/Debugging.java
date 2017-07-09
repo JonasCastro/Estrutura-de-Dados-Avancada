@@ -1,7 +1,8 @@
 import java.io.File;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Debugging {
 
@@ -36,7 +37,6 @@ public class Debugging {
 	public void setTaxadeCompressao(long taxadeCompressao) {
 		this.taxadeCompressao = taxadeCompressao;
 	}
-
 
 	public int[] getFrequencia() {
 		return frequencia;
@@ -83,7 +83,7 @@ public class Debugging {
 		File out = new File(nomeArquivo);
 		long tamanho = out.length();
 
-		return "" + (float)(tamanho * 8) / (tamanhot * 8);
+		return "" + (float) (tamanho * 8) / (tamanhot * 8);
 	}
 
 	private String frequencia() {
@@ -112,10 +112,39 @@ public class Debugging {
 
 		return string;
 	}
-	public static void main(String[] args) {
-		Double x = 1.0078902 + 0.88750166 +1.0130618 +1.0175654 + 0.89982176+0.982323 + 0.97647303 + 1.0683519 + 0.9133574+ 0.99717313;
-		System.out.println(x);
-		System.out.println((Double)x/10);
-	}
 
+	public static void main(String[] args) {
+		// ([\w]+)\.txt
+		System.out.println("inicio");
+		File fileFolder = new File("teste");
+		// Double x = 1.0078902 + 0.88750166 +1.0130618 +1.0175654 +
+		// 0.89982176+0.982323 + 0.97647303 + 1.0683519 + 0.9133574+ 0.99717313;
+		// System.out.println(x);
+		// System.out.println((Double)x/10);
+		fileFolder.mkdirs();
+		System.out.println("fim");
+		// new File("teste/seila").mkdir();
+		String name = "o/Co-r.txt";
+		Pattern padrao = Pattern.compile("(([\\w-_>]+)\\.txt)");
+		Matcher matcher = padrao.matcher(name);
+		if (matcher.find()) {
+			System.out.println(matcher.group());
+			
+			System.out.println("".equals(name.replace(matcher.group(), "")));
+		}
+		// Pattern palavraPT = Pattern.compile(palavraRE);
+		// Matcher matcher;
+		// String linha;
+		// String str;
+		// matcher = palavraPT.matcher(linha);
+		// Object dicionario;
+		// if (matcher.find() && !dicionario.contains(matcher.group(1))) {
+		// str =
+		// StringUtils.stripAccents(matcher.group(1).toLowerCase().trim());
+		// dicionario.put(str.replaceAll("([\w]+)\.txt", "?"), "");
+		// }
+		// System.out.println(dicionario.keys());
+		// return dicionario;
+
+	}
 }
