@@ -141,7 +141,7 @@ public class HuffmanTree {
 
 		writeTree(root, bf);
 
-		bf.flush();
+//		bf.flush();
 
 		// • Usar a tabela de sı́mbolos para codificar o arquivo
 		for (int i = 0; i < input.length; i++) {
