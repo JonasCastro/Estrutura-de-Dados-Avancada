@@ -72,8 +72,15 @@ public class Debugging {
 
 	@Override
 	public String toString() {
-		return "\nNome do arquivo comprimido: " + nomeArquivo + "\n\nTaxa de compressão: " + taxaCompressao()
-				+ "\n\nFrequencia:\n" + frequencia() + "\n\nCodigo:\n" + codigo();
+		return "\nNOME DO ARQUIVO COMPRIMIDO: " + nameArq(nomeArquivoIn) + "\n\nTAXA DE COMPRESSÃO: " + taxaCompressao()
+				+ "\n\nFREQUENCIA:\n\n" + frequencia() + "\n\nCODIGO:\n\n" + codigo();
+	}
+	private static String nameArq(String ar) {
+		String[] directory = ar.split("/");
+		if (directory.length > 1) 
+			return directory[directory.length-1];
+		else
+			return ar;
 	}
 
 	public String taxaCompressao() {

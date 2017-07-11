@@ -1,4 +1,7 @@
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HuffmanTree {
 	// alphabet size of extended ASCII
@@ -128,13 +131,11 @@ public class HuffmanTree {
 		bf.writeInt(infile.length());
 		for (int j = 0; j < infile.length(); j++) {
 			char c = infile.charAt(j);
-			System.out.print(c);
 			bf.writeChar(c);
 		}
 		bf.flush();
 		// • Imprimir numero de bytes
 		bf.writeInt(input.length);
-		System.out.println("length=" + input.length);
 		bf.flush();
 		// • Imprimir a árvore de Huffman para o arquivo de saı́da
 
@@ -160,11 +161,11 @@ public class HuffmanTree {
 		bf.flush();
 		bf.inw.newLine();
 		bf.close();
-//		BinaryFile bff = new BinaryFile(outfile, 'w');
+		// BinaryFile bff = new BinaryFile(outfile, 'w');
 		// • Imprimir numero de bytes diretorio e diretorio
-//		bff.writeInt(10);
-//		bff.flush();
-//		bff.close();
+		// bff.writeInt(10);
+		// bff.flush();
+		// bff.close();
 		buildDebugging(infile, outfile, input, codigos, freq);
 	}
 
@@ -220,44 +221,35 @@ public class HuffmanTree {
 
 	}
 
-	public static void expand(String infile, String outfile) throws IOException {
-		// infile = "saida";
-		// outfile = "saida2";
-		String[] txts = outfile.split(" ");
+	public static void expand(String infile, String d) throws IOException {
+
 		BinaryFile bfr = new BinaryFile(infile, 'r');
 		bfr.fillBuffer();
-		int length2 = bfr.readInt();
-		// System.out.println(bfr);
-		System.out.println(length2);
-		for (int ir = 0; ir < length2; ir++) {
-			System.out.println(txts[ir]);
 
-			// • Ler numero de bytes diretorio
-			// bfr.fillBuffer();
-			int lengthDiret = bfr.readInt();
+		/** Corre de 1 ate N sendo n o numero de arquivos comprimidos */
+		int qtdFiles = bfr.readInt();
+		for (int ir = 1; ir <= qtdFiles; ir++) {
 
-			// System.out.println(bfr.readInt());
+			/** Le numero de bytes da descricao so diretorio */
+			int lengthDirectory = bfr.readInt();
 
-			// // • Ler diretorio
-			for (int j = 0; j < lengthDiret; j++) {
-				char c = bfr.readChar();
-				System.out.print(c);
-			}
-			// • Ler numero de bytes
-//			bfr.fillBuffer();
+			/** Ler diretorio */
+			String directory = "";
+			for (int j = 0; j < lengthDirectory; j++)
+				directory += bfr.readChar();
+
+			/** •Le numero de bytes contidos no arquivo comprimido */
 			int length = bfr.readInt();
 
-			System.out.println("\nlength=" + length);
-
-			// • Ler a árvore de Huffman do arquivo de entrada
-			// bfr.fillBuffer();
+			/** • Ler a árvore de Huffman do arquivo de entrada */
 			Node root = readTrie(bfr);
 			rooot = root;
-//			PrinterTree.printNode(root);
-			bfr.fillBuffer();
-			//
-			// • Decodificar a entrada usando a árvore de Huffman
-			TextFile txw = new TextFile(txts[ir], 'w');
+
+			/** Caso nao exista,o diretorio "directory" é criado */
+			mkdirs(directory);
+
+			/** • Decodificar a entrada usando a árvore de Huffman */
+			TextFile txw = new TextFile(directory, 'w');
 			for (int i = 0; i < length; i++) {
 				Node x = root;
 				while (!x.isLeaf()) {
@@ -271,51 +263,96 @@ public class HuffmanTree {
 			}
 
 			txw.close();
-			 bfr.inr.readLine();
-			 bfr.fillBuffer();
-			// BinaryFile bfrr = new BinaryFile(infile, 'r');
-//			 System.out.println(bfr.readInt());
-			// bfr.close();
+			bfr.inr.readLine();
+			bfr.fillBuffer();
+			
+			if(d.equals("-v")){
+			System.out.println("\n\nNOME DO ARQUIVO DESCOMPRIMIDO: "+nameArq(directory));
+
+			System.out.println("\nÁRVORE DE HUFFMAN:\n");
+			PrinterTree.printNode(rooot);
+			}
 		}
 		bfr.close();
+		
+	}
+
+	private static void mkdirs(String diretorio) {
+		String mkDirectory = "";
+		String[] files = diretorio.split("/");
+		if (files.length > 1) {
+			for (int i = 0; i < files.length - 1; i++) {
+				mkDirectory = mkDirectory + files[i] + "/";
+			}
+		}
+		File file = new File(mkDirectory);
+		file.mkdirs();
+	}
+
+	public static List<String> listFiles(File file) {
+		List<String> list = new ArrayList<>();
+
+		if (file.isFile())
+			list.add(file.getName());
+
+		else if (file.isDirectory())
+			listFiles(file, list);
+
+		return list;
+
+	}
+
+	private static void listFiles(File file, List<String> list) {
+
+		for (File ff : file.listFiles()) {
+
+			if (ff.isDirectory())
+				listFiles(ff, list);
+
+			else if (ff.isFile())
+				list.add(ff.getPath());
+
+		}
+
 	}
 
 	public static void main(String[] args) throws IOException {
 		args[2] = "-d";
+		args[1] = "testMultCompress";
+		args[0] = "teste";
+
 		switch (args[2]) {
 		case "-c":
-			String[] txts = { "teste/p2/p3/tinyTale.txt","teste/HeapBinario.txt","teste/p2/Estruturas de Dados_ Algoritmo de Huffman.txt"};// args[0].split("
-			// String[] txts = {"HeapBinario.txt"}; // ");
+			File file = new File(args[0]);
+			List<String> listFiles = listFiles(file);
 
-			BinaryFile bf = new BinaryFile("testMultCompress", 'w');
-			bf.writeInt(txts.length);
+			(new File(args[1])).delete();
+			BinaryFile bf = new BinaryFile(args[1], 'w');
+			bf.writeInt(listFiles.size());
 			bf.flush();
 			bf.close();
 
-			for (int i = 0; i < txts.length; i++) {
-				compress(txts[i], "testMultCompress");
+			for (String ar : listFiles) {
+
+				compress(ar, args[1]);
+
 				if (args.length == 4 && args[3].equals("-v")) {
-					System.out.println(txts[i]);
-					System.out.println("\n\nÁrvore de Huffman:");
-					// PrinterTree.printNode(rooot);
+					
 					System.out.println(Debugging.getInstance());
+					System.out.println("\nÁRVORE DE HUFFMAN:");
+					 PrinterTree.printNode(rooot);
 				}
+
 			}
-			//
 
 			break;
 
 		case "-d":
 
-			expand("testMultCompress", "teste/tinyTale2.txt teste/HeapBinario2.txt teste/E2.txt");
-			// expand("testMultCompress", "HeapBinario2.txt");
-			// if (args.length == 4 && args[3].equals("-v")) {
-			// System.out.println("\n\nNome do arquivo descomprimido:");
-			// System.out.println(args[1]);
-			//
-			// System.out.println("\n\nÁrvore de Huffman:");
-			// PrinterTree.printNode(rooot);
-			// }
+			if (args.length == 4 && args[3].equals("-v"))
+				expand(args[1], args[3]);
+			expand(args[1], "");
+			
 
 			break;
 
@@ -323,6 +360,14 @@ public class HuffmanTree {
 			throw new IllegalArgumentException("Illegal command line argument");
 		}
 
+	}
+
+	private static String nameArq(String ar) {
+		String[] directory = ar.split("/");
+		if (directory.length > 1)
+			return directory[directory.length - 1];
+		else
+			return ar;
 	}
 
 }
